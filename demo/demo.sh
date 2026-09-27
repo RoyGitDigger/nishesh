@@ -18,14 +18,15 @@ TARGET=demo/wipe-target.img
 CERT=demo/certificate.json
 CHAIN=demo/chain.jsonl
 
+clr()   { [ "$FAST" = "--fast" ] || clear; }
 pause() { [ "$FAST" = "--fast" ] || { echo; read -rp $'\033[2m  [enter]\033[0m'; clear; }; }
-act()   { clear; echo; printf '\033[38;5;37m  ══ %s ══\033[0m\n' "$1"; echo; sleep 0.4; }
+act()   { clr; echo; printf '\033[38;5;37m  ══ %s ══\033[0m\n' "$1"; echo; sleep 0.4; }
 
 [ -x "$BIN" ] || { echo "build first:  cargo build --release"; exit 1; }
 rm -f "$CHAIN" "$CERT" "$TARGET"
 
 # ---------------------------------------------------------------- ACT ZERO
-clear
+clr
 $BIN --help | head -12
 pause
 
