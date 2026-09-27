@@ -14,11 +14,11 @@
 //!
 //! On any machine, with no privileges, no loop devices and no external tools.
 
+use crate::carve::crc32;
 use crate::fat::FatBuilder;
 use crate::hash::{hex, sha256};
-use crate::json::Json;
 use crate::json;
-use crate::carve::crc32;
+use crate::json::Json;
 
 #[derive(Debug, Clone)]
 pub struct CorpusEntry {
@@ -253,14 +253,46 @@ pub fn build_corpus(size_mb: u64, seed: u64) -> Corpus {
         delete: bool,
     }
     let specs = [
-        Spec { name: "BRIEF01.JPG", kind: "JPEG image", delete: true },
-        Spec { name: "SURVEIL.PNG", kind: "PNG image", delete: true },
-        Spec { name: "DOSSIER.PDF", kind: "PDF document", delete: true },
-        Spec { name: "ARCHIVE.ZIP", kind: "ZIP archive", delete: true },
-        Spec { name: "NOTES.TXT", kind: "plain text", delete: true },
-        Spec { name: "MANIFEST.TXT", kind: "plain text", delete: false },
-        Spec { name: "READONLY.JPG", kind: "JPEG image", delete: false },
-        Spec { name: "KEEPME.PDF", kind: "PDF document", delete: false },
+        Spec {
+            name: "BRIEF01.JPG",
+            kind: "JPEG image",
+            delete: true,
+        },
+        Spec {
+            name: "SURVEIL.PNG",
+            kind: "PNG image",
+            delete: true,
+        },
+        Spec {
+            name: "DOSSIER.PDF",
+            kind: "PDF document",
+            delete: true,
+        },
+        Spec {
+            name: "ARCHIVE.ZIP",
+            kind: "ZIP archive",
+            delete: true,
+        },
+        Spec {
+            name: "NOTES.TXT",
+            kind: "plain text",
+            delete: true,
+        },
+        Spec {
+            name: "MANIFEST.TXT",
+            kind: "plain text",
+            delete: false,
+        },
+        Spec {
+            name: "READONLY.JPG",
+            kind: "JPEG image",
+            delete: false,
+        },
+        Spec {
+            name: "KEEPME.PDF",
+            kind: "PDF document",
+            delete: false,
+        },
     ];
 
     for (i, s) in specs.iter().enumerate() {
@@ -271,7 +303,9 @@ pub fn build_corpus(size_mb: u64, seed: u64) -> Corpus {
             "PDF document" => make_pdf(s.name, 4000 + i * 300),
             "ZIP archive" => make_zip(
                 "classified/report.txt",
-                b"CLASSIFIED PAYLOAD - NISHESH DEMONSTRATION CORPUS".repeat(40).as_slice(),
+                b"CLASSIFIED PAYLOAD - NISHESH DEMONSTRATION CORPUS"
+                    .repeat(40)
+                    .as_slice(),
             ),
             _ => format!(
                 "NISHESH demonstration corpus\nfile: {}\nindex: {}\n{}\n",
@@ -324,7 +358,10 @@ mod tests {
         // be reporting successes its validators never confirmed.
         assert!(validate("jpg", &make_jpeg(1, 4096)), "JPEG must validate");
         assert!(validate("png", &make_png(1, 4096)), "PNG must validate");
-        assert!(validate("zip", &make_zip("a.txt", b"hello world")), "ZIP must validate");
+        assert!(
+            validate("zip", &make_zip("a.txt", b"hello world")),
+            "ZIP must validate"
+        );
         assert!(validate("pdf", &make_pdf("test", 512)), "PDF must validate");
     }
 
@@ -334,8 +371,14 @@ mod tests {
         let b = build_corpus(20, 42);
         assert_eq!(a.image, b.image, "same seed must give the same image");
         assert_eq!(
-            a.entries.iter().map(|e| e.sha256.clone()).collect::<Vec<_>>(),
-            b.entries.iter().map(|e| e.sha256.clone()).collect::<Vec<_>>()
+            a.entries
+                .iter()
+                .map(|e| e.sha256.clone())
+                .collect::<Vec<_>>(),
+            b.entries
+                .iter()
+                .map(|e| e.sha256.clone())
+                .collect::<Vec<_>>()
         );
     }
 

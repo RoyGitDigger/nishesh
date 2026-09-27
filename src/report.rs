@@ -141,14 +141,25 @@ pub fn table(headers: &[&str], rows: &[Vec<String>]) {
     println!("  {}", c(BOLD, &header.join("  ")));
     println!(
         "  {}",
-        c(GREY, &widths.iter().map(|w| "─".repeat(*w)).collect::<Vec<_>>().join("  "))
+        c(
+            GREY,
+            &widths
+                .iter()
+                .map(|w| "─".repeat(*w))
+                .collect::<Vec<_>>()
+                .join("  ")
+        )
     );
     for r in rows {
         let cells: Vec<String> = r
             .iter()
             .enumerate()
             .map(|(i, cell)| {
-                let pad = widths.get(i).copied().unwrap_or(0).saturating_sub(display_len(cell));
+                let pad = widths
+                    .get(i)
+                    .copied()
+                    .unwrap_or(0)
+                    .saturating_sub(display_len(cell));
                 format!("{}{}", cell, " ".repeat(pad))
             })
             .collect();

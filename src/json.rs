@@ -338,9 +338,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => {
                     let start = self.i - 1;
-                    while self.i < self.b.len()
-                        && self.b[self.i] != b'"'
-                        && self.b[self.i] != b'\\'
+                    while self.i < self.b.len() && self.b[self.i] != b'"' && self.b[self.i] != b'\\'
                     {
                         self.i += 1;
                     }

@@ -26,8 +26,8 @@
 
 use crate::artifact::{is_zeroed, shannon_entropy, Artifact};
 use crate::device::{Device, DeviceInfo, ImageDevice, MediaClass};
-use crate::json::Json;
 use crate::json;
+use crate::json::Json;
 
 // ------------------------------------------------------------------ policy
 

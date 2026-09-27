@@ -96,7 +96,7 @@ fn main() -> ExitCode {
         Ok(true) => ExitCode::SUCCESS,
         Ok(false) => ExitCode::from(1),
         Err(e) => {
-            ui::fail(&format!("{e}"));
+            ui::fail(&e.to_string());
             ExitCode::from(2)
         }
     }
@@ -185,7 +185,11 @@ fn open_simulated(args: &Args, path: &Path, writable: bool) -> std::io::Result<I
 }
 
 fn yn(b: bool) -> &'static str {
-    if b { "yes" } else { "no" }
+    if b {
+        "yes"
+    } else {
+        "no"
+    }
 }
 
 // ----------------------------------------------------------------- testgen
@@ -271,7 +275,11 @@ fn cmd_identify(args: &Args) -> Result<bool, String> {
     ui::kv("sector size", &format!("{} B", info.sector_size));
     ui::kv(
         "write blocked",
-        if dev.is_write_blocked() { "yes (analysis mode)" } else { "NO" },
+        if dev.is_write_blocked() {
+            "yes (analysis mode)"
+        } else {
+            "NO"
+        },
     );
     println!();
 
@@ -348,7 +356,10 @@ fn cmd_identify(args: &Args) -> Result<bool, String> {
             ));
             ui::kv("volume label", &v.bpb.volume_label);
             ui::kv("bytes per sector", &v.bpb.bytes_per_sector.to_string());
-            ui::kv("sectors per cluster", &v.bpb.sectors_per_cluster.to_string());
+            ui::kv(
+                "sectors per cluster",
+                &v.bpb.sectors_per_cluster.to_string(),
+            );
             ui::kv("cluster size", &ui::human(v.bpb.cluster_bytes()));
             ui::kv("cluster count", &v.bpb.cluster_count().to_string());
             ui::kv("FAT copies", &v.bpb.num_fats.to_string());
@@ -466,15 +477,16 @@ fn cmd_recover(args: &Args) -> Result<bool, String> {
         ]);
     }
     ui::table(
-        &["ARTIFACT", "METHOD", "SIZE", "TYPE", "ORACLE", "CONF", "SHA-256"],
+        &[
+            "ARTIFACT", "METHOD", "SIZE", "TYPE", "ORACLE", "CONF", "SHA-256",
+        ],
         &rows,
     );
     println!();
     ui::kv("artifacts recovered", &run.artifacts.len().to_string());
     ui::kv(
         "with original metadata",
-        &run
-            .artifacts
+        &run.artifacts
             .iter()
             .filter(|a| a.method.carries_metadata())
             .count()
@@ -482,7 +494,11 @@ fn cmd_recover(args: &Args) -> Result<bool, String> {
     );
     ui::kv(
         "validator-confirmed",
-        &run.artifacts.iter().filter(|a| a.validated).count().to_string(),
+        &run.artifacts
+            .iter()
+            .filter(|a| a.validated)
+            .count()
+            .to_string(),
     );
 
     if let Some(dir) = args.path("out") {
@@ -517,7 +533,10 @@ fn cmd_recover(args: &Args) -> Result<bool, String> {
 fn grade(artifacts: &[Artifact], manifest_path: &Path) -> Result<f64, String> {
     let text = std::fs::read_to_string(manifest_path).map_err(|e| format!("manifest: {e}"))?;
     let m = json::parse(&text).map_err(|e| format!("manifest parse: {e}"))?;
-    let files = m.get("files").and_then(|f| f.as_arr()).ok_or("bad manifest")?;
+    let files = m
+        .get("files")
+        .and_then(|f| f.as_arr())
+        .ok_or("bad manifest")?;
     let recovered: Vec<String> = artifacts.iter().map(|a| hex(&a.sha256)).collect();
 
     ui::section("2", "grading against ground truth");
@@ -537,7 +556,10 @@ fn grade(artifacts: &[Artifact], manifest_path: &Path) -> Result<f64, String> {
         }
         rows.push(vec![
             name.to_string(),
-            f.get("kind").and_then(|j| j.as_str()).unwrap_or("-").to_string(),
+            f.get("kind")
+                .and_then(|j| j.as_str())
+                .unwrap_or("-")
+                .to_string(),
             ui::human(f.get("size").and_then(|j| j.as_i64()).unwrap_or(0) as u64),
             if found {
                 ui::c(ui::GREEN, "RECOVERED — hash identical")
@@ -624,9 +646,18 @@ fn cmd_sanitize(args: &Args) -> Result<bool, String> {
             false,
             "NO CERTIFICATE ISSUED",
             &[
-                ui::c(ui::GREY, "  The medium cannot reach Purge through this transport."),
-                ui::c(ui::GREY, "  Escalation: direct SATA/NVMe port, then physical destruction."),
-                ui::c(ui::GREY, "  The refusal is recorded and signed too, so an operator"),
+                ui::c(
+                    ui::GREY,
+                    "  The medium cannot reach Purge through this transport.",
+                ),
+                ui::c(
+                    ui::GREY,
+                    "  Escalation: direct SATA/NVMe port, then physical destruction.",
+                ),
+                ui::c(
+                    ui::GREY,
+                    "  The refusal is recorded and signed too, so an operator",
+                ),
                 ui::c(ui::GREY, "  cannot quietly skip reporting a failure."),
             ],
         );
@@ -685,7 +716,10 @@ fn cmd_sanitize(args: &Args) -> Result<bool, String> {
     ui::kv("max entropy observed", &format!("{max_h:.3} bits/byte"));
     ui::kv_hi(
         "residual upper bound",
-        &format!("< {:.4}% at 95% confidence", sanitize::residual_bound_pct(samples)),
+        &format!(
+            "< {:.4}% at 95% confidence",
+            sanitize::residual_bound_pct(samples)
+        ),
         ui::TEAL,
     );
     ui::note(
@@ -706,16 +740,19 @@ fn cmd_sanitize(args: &Args) -> Result<bool, String> {
     ui::kv_hi(
         "artifacts recovered after wipe",
         &after.artifacts.len().to_string(),
-        if after.artifacts.is_empty() { ui::GREEN } else { ui::RED },
+        if after.artifacts.is_empty() {
+            ui::GREEN
+        } else {
+            ui::RED
+        },
     );
     ui::kv(
         "before → after",
         &format!("{} → {}", before.artifacts.len(), after.artifacts.len()),
     );
 
-    let verification =
-        sanitize::verify(&mut vdev, total, samples, seed, after.artifacts.clone())
-            .map_err(|e| format!("verify: {e}"))?;
+    let verification = sanitize::verify(&mut vdev, total, samples, seed, after.artifacts.clone())
+        .map_err(|e| format!("verify: {e}"))?;
 
     ui::section("6", "M4 · certificate and tamper-evident log");
     let signer = DevSigner::from_passphrase(&passphrase);
@@ -759,7 +796,8 @@ fn cmd_sanitize(args: &Args) -> Result<bool, String> {
         "verified" => verification.passed,
         "certificate_sha256" => hex(&sha256(cert.canonical().as_bytes())),
     });
-    log.persist(&log_path).map_err(|e| format!("log write: {e}"))?;
+    log.persist(&log_path)
+        .map_err(|e| format!("log write: {e}"))?;
     let tree = log.merkle();
     let proof = tree.prove(log.entries.len() - 1).ok_or("proof")?;
 
@@ -810,9 +848,18 @@ fn cmd_sanitize(args: &Args) -> Result<bool, String> {
         ),
         String::new(),
         ui::c(ui::GREY, "  Limitation, stated on the certificate itself:"),
-        ui::c(ui::GREY, "  no software reads unmapped physical NAND pages held by a flash"),
-        ui::c(ui::GREY, "  translation layer. What is established is that every reachable"),
-        ui::c(ui::GREY, "  byte is clean, and that the right firmware technique executed."),
+        ui::c(
+            ui::GREY,
+            "  no software reads unmapped physical NAND pages held by a flash",
+        ),
+        ui::c(
+            ui::GREY,
+            "  translation layer. What is established is that every reachable",
+        ),
+        ui::c(
+            ui::GREY,
+            "  byte is clean, and that the right firmware technique executed.",
+        ),
     ];
     ui::verdict(
         verification.passed,
@@ -878,7 +925,11 @@ fn cmd_verify_cert(args: &Args) -> Result<bool, String> {
         let leaf = p.get("leaf").and_then(|j| j.as_str()).unwrap_or("");
         let root = p.get("root").and_then(|j| j.as_str()).unwrap_or("");
         let idx = p.get("index").and_then(|j| j.as_i64()).unwrap_or(-1);
-        let steps = p.get("path").and_then(|j| j.as_arr()).map(|a| a.len()).unwrap_or(0);
+        let steps = p
+            .get("path")
+            .and_then(|j| j.as_arr())
+            .map(|a| a.len())
+            .unwrap_or(0);
         println!();
         ui::kv("merkle index", &idx.to_string());
         ui::kv("merkle root", root);
@@ -914,7 +965,11 @@ fn cmd_verify_cert(args: &Args) -> Result<bool, String> {
     let ok = check.ok() && proof_ok && chain_ok;
     ui::verdict(
         ok,
-        if ok { "CERTIFICATE VALID" } else { "CERTIFICATE REJECTED" },
+        if ok {
+            "CERTIFICATE VALID"
+        } else {
+            "CERTIFICATE REJECTED"
+        },
         &[],
     );
     Ok(ok)
@@ -961,7 +1016,11 @@ fn cmd_selftest(args: &Args) -> Result<bool, String> {
     let ok = rate >= 99.0;
     ui::verdict(
         ok,
-        if ok { "PIPELINE HEALTHY" } else { "PIPELINE DEGRADED" },
+        if ok {
+            "PIPELINE HEALTHY"
+        } else {
+            "PIPELINE DEGRADED"
+        },
         &[format!("  byte-exact recovery rate: {rate:.1}%")],
     );
     let _ = std::fs::remove_dir_all(&dir);

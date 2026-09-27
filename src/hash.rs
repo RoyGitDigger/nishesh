@@ -39,7 +39,12 @@ impl Default for Sha256 {
 
 impl Sha256 {
     pub fn new() -> Self {
-        Sha256 { state: IV, buf: [0u8; 64], buf_len: 0, total_len: 0 }
+        Sha256 {
+            state: IV,
+            buf: [0u8; 64],
+            buf_len: 0,
+            total_len: 0,
+        }
     }
 
     pub fn update(&mut self, mut data: &[u8]) {
@@ -114,8 +119,14 @@ impl Sha256 {
                 .wrapping_add(s1);
         }
         let (mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h) = (
-            self.state[0], self.state[1], self.state[2], self.state[3],
-            self.state[4], self.state[5], self.state[6], self.state[7],
+            self.state[0],
+            self.state[1],
+            self.state[2],
+            self.state[3],
+            self.state[4],
+            self.state[5],
+            self.state[6],
+            self.state[7],
         );
         for i in 0..64 {
             let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
@@ -128,9 +139,13 @@ impl Sha256 {
             let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
             let maj = (a & b) ^ (a & c) ^ (b & c);
             let t2 = s0.wrapping_add(maj);
-            h = g; g = f; f = e;
+            h = g;
+            g = f;
+            f = e;
             e = d.wrapping_add(t1);
-            d = c; c = b; b = a;
+            d = c;
+            c = b;
+            b = a;
             a = t1.wrapping_add(t2);
         }
         let s = &mut self.state;

@@ -3,8 +3,8 @@
 
 use crate::device::Region;
 use crate::hash::hex;
-use crate::json::Json;
 use crate::json;
+use crate::json::Json;
 
 /// How an artifact was found. This matters forensically: a file recovered from
 /// an intact MFT record carries its original name and timestamps and is worth
@@ -36,7 +36,10 @@ impl Method {
 
     /// Whether this method preserves the original filename and timestamps.
     pub fn carries_metadata(&self) -> bool {
-        matches!(self, Method::MftRecord | Method::JournalReplay | Method::DirEntry)
+        matches!(
+            self,
+            Method::MftRecord | Method::JournalReplay | Method::DirEntry
+        )
     }
 }
 

@@ -2,7 +2,7 @@
 name = "nishesh"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.73"
 authors = ["Team Unallocated, National Forensic Sciences University"]
 description = "Integrated secure data erasure and advanced file recovery for digital forensics and data sanitization"
 license = "Apache-2.0"

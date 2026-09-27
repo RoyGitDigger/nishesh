@@ -98,8 +98,7 @@ impl FatBpb {
         // Microsoft specification and it is the *only* correct way to tell
         // FAT12/16/32 apart — the filesystem-type string is advisory and is
         // routinely wrong on real media.
-        let root_dir_sectors =
-            ((root_entries * 32) + (bytes_per_sector - 1)) / bytes_per_sector;
+        let root_dir_sectors = (root_entries * 32).div_ceil(bytes_per_sector);
         let data_sectors = total_sectors
             .saturating_sub(reserved_sectors as u64)
             .saturating_sub(num_fats as u64 * fat_size_sectors)
@@ -141,7 +140,7 @@ impl FatBpb {
     }
 
     pub fn root_dir_sectors(&self) -> u64 {
-        (((self.root_entries * 32) + (self.bytes_per_sector - 1)) / self.bytes_per_sector) as u64
+        (self.root_entries * 32).div_ceil(self.bytes_per_sector) as u64
     }
 
     pub fn first_data_sector(&self) -> u64 {
@@ -159,9 +158,7 @@ impl FatBpb {
     }
 
     pub fn cluster_count(&self) -> u64 {
-        let data = self
-            .total_sectors
-            .saturating_sub(self.first_data_sector());
+        let data = self.total_sectors.saturating_sub(self.first_data_sector());
         data / self.sectors_per_cluster as u64
     }
 }
@@ -212,8 +209,7 @@ impl DirEntry {
         } else {
             format!("{base}.{ext}")
         };
-        let first_cluster =
-            ((le16(buf, 0x14) as u32) << 16) | le16(buf, 0x1A) as u32;
+        let first_cluster = ((le16(buf, 0x14) as u32) << 16) | le16(buf, 0x1A) as u32;
         Some(DirEntry {
             raw_offset,
             name,
@@ -255,12 +251,7 @@ impl FatVolume {
         let mut out = Vec::new();
         if self.bpb.kind == FatKind::Fat32 {
             let sec = self.bpb.cluster_to_sector(self.bpb.root_cluster);
-            self.scan_dir_sectors(
-                dev,
-                sec,
-                self.bpb.sectors_per_cluster as u64,
-                &mut out,
-            )?;
+            self.scan_dir_sectors(dev, sec, self.bpb.sectors_per_cluster as u64, &mut out)?;
         } else {
             self.scan_dir_sectors(
                 dev,
@@ -410,11 +401,9 @@ impl FatBuilder {
         let reserved_sectors = 1u32;
         let num_fats = 2u32;
         let root_entries = 512u32;
-        let root_dir_sectors =
-            (((root_entries * 32) + bytes_per_sector - 1) / bytes_per_sector) as u64;
+        let root_dir_sectors = (root_entries * 32).div_ceil(bytes_per_sector) as u64;
         // Two bytes per FAT16 entry.
-        let fat_size_sectors =
-            ((clusters + 2) * 2).div_ceil(bytes_per_sector as u64);
+        let fat_size_sectors = ((clusters + 2) * 2).div_ceil(bytes_per_sector as u64);
         let total_sectors = reserved_sectors as u64
             + num_fats as u64 * fat_size_sectors
             + root_dir_sectors
@@ -485,7 +474,7 @@ impl FatBuilder {
                 while c >= 2 && (c as usize) < self.fat.len() {
                     let next = self.fat[c as usize] as u32;
                     self.fat[c as usize] = 0;
-                    if next >= 0xFFF8 || next < 2 {
+                    if !(2..0xFFF8).contains(&next) {
                         break;
                     }
                     c = next;
@@ -523,9 +512,7 @@ impl FatBuilder {
 
     pub fn build(&self) -> Vec<u8> {
         let ss = self.bytes_per_sector as usize;
-        let root_dir_sectors =
-            (((self.root_entries * 32) + self.bytes_per_sector - 1) / self.bytes_per_sector)
-                as usize;
+        let root_dir_sectors = (self.root_entries * 32).div_ceil(self.bytes_per_sector) as usize;
         let mut img = vec![0u8; self.total_sectors as usize * ss];
 
         // ---- boot sector / BPB

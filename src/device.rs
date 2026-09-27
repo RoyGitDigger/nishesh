@@ -222,10 +222,7 @@ impl ImageDevice {
     }
 
     fn open_inner(path: &Path, writable: bool) -> std::io::Result<Self> {
-        let file = OpenOptions::new()
-            .read(true)
-            .write(writable)
-            .open(path)?;
+        let file = OpenOptions::new().read(true).write(writable).open(path)?;
         let len = file.metadata()?.len();
         let sector_size = DEFAULT_SECTOR;
         let sectors = len / sector_size as u64;
@@ -293,7 +290,10 @@ impl ImageDevice {
     /// on a file. On real hardware these numbers come from IDENTIFY DEVICE and
     /// DEVICE CONFIGURATION IDENTIFY.
     pub fn simulate_hidden(&mut self, hpa_sectors: u64, dco_sectors: u64) {
-        let visible = self.info.user_max_lba.saturating_sub(hpa_sectors + dco_sectors);
+        let visible = self
+            .info
+            .user_max_lba
+            .saturating_sub(hpa_sectors + dco_sectors);
         self.info.user_max_lba = visible;
         self.info.native_max_lba = visible + hpa_sectors;
         self.info.dco_max_lba = visible + hpa_sectors + dco_sectors;

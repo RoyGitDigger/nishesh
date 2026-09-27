@@ -22,8 +22,8 @@
 //! operator cannot backdate it. That is Phase 3 and optional by design.
 
 use crate::hash::{hex, hmac_sha256, sha256, Sha256};
-use crate::json::{parse, Json};
 use crate::json;
+use crate::json::{parse, Json};
 
 // ------------------------------------------------------------------ signer
 
@@ -44,7 +44,9 @@ pub enum SignatureScheme {
 impl SignatureScheme {
     pub fn label(&self) -> &'static str {
         match self {
-            SignatureScheme::HmacSha256Development => "HMAC-SHA256 (development MAC, not a signature)",
+            SignatureScheme::HmacSha256Development => {
+                "HMAC-SHA256 (development MAC, not a signature)"
+            }
             SignatureScheme::Ed25519 => "Ed25519 (RFC 8032)",
         }
     }
@@ -80,7 +82,9 @@ impl DevSigner {
     /// Derive a stable key from a passphrase so a demo is reproducible across
     /// machines. Real deployments load from the TPM instead.
     pub fn from_passphrase(p: &str) -> Self {
-        DevSigner { key: sha256(p.as_bytes()).to_vec() }
+        DevSigner {
+            key: sha256(p.as_bytes()).to_vec(),
+        }
     }
 }
 
@@ -175,7 +179,9 @@ impl InclusionProof {
 impl MerkleTree {
     pub fn build(leaves: &[[u8; 32]]) -> MerkleTree {
         if leaves.is_empty() {
-            return MerkleTree { levels: vec![vec![]] };
+            return MerkleTree {
+                levels: vec![vec![]],
+            };
         }
         let mut levels = vec![leaves.to_vec()];
         while levels.last().unwrap().len() > 1 {
@@ -258,9 +264,8 @@ impl AppendLog {
         let text = std::fs::read_to_string(path)?;
         let mut log = AppendLog::new();
         for line in text.lines().filter(|l| !l.trim().is_empty()) {
-            let j = parse(line).map_err(|e| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-            })?;
+            let j =
+                parse(line).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
             log.leaves.push(leaf_hash(j.canonical().as_bytes()));
             log.entries.push(j);
         }
@@ -368,8 +373,9 @@ mod tests {
     #[test]
     fn merkle_proof_verifies_for_every_leaf() {
         for n in [1usize, 2, 3, 7, 8, 100] {
-            let leaves: Vec<[u8; 32]> =
-                (0..n).map(|i| leaf_hash(&(i as u64).to_le_bytes())).collect();
+            let leaves: Vec<[u8; 32]> = (0..n)
+                .map(|i| leaf_hash(&(i as u64).to_le_bytes()))
+                .collect();
             let t = MerkleTree::build(&leaves);
             for i in 0..n {
                 let p = t.prove(i).expect("proof must exist");
@@ -380,8 +386,7 @@ mod tests {
 
     #[test]
     fn proof_length_is_logarithmic() {
-        let leaves: Vec<[u8; 32]> =
-            (0..1024u64).map(|i| leaf_hash(&i.to_le_bytes())).collect();
+        let leaves: Vec<[u8; 32]> = (0..1024u64).map(|i| leaf_hash(&i.to_le_bytes())).collect();
         let t = MerkleTree::build(&leaves);
         let p = t.prove(500).unwrap();
         assert_eq!(p.path.len(), 10, "1024 leaves must give a 10-hash proof");
@@ -429,7 +434,10 @@ mod tests {
             bad.set("payload", p);
         }
         let c2 = verify_certificate(&bad, &s).unwrap();
-        assert!(!c2.ok(), "flipping the verdict must invalidate the certificate");
+        assert!(
+            !c2.ok(),
+            "flipping the verdict must invalidate the certificate"
+        );
     }
 
     #[test]
@@ -437,6 +445,9 @@ mod tests {
         let s = DevSigner::from_passphrase("demo");
         let a = parse(r#"{"b":2,"a":1}"#).unwrap();
         let b = parse(r#"{"a":1,"b":2}"#).unwrap();
-        assert_eq!(s.sign(a.canonical().as_bytes()), s.sign(b.canonical().as_bytes()));
+        assert_eq!(
+            s.sign(a.canonical().as_bytes()),
+            s.sign(b.canonical().as_bytes())
+        );
     }
 }

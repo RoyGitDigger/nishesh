@@ -38,7 +38,11 @@ struct Node {
 
 impl Node {
     fn new() -> Node {
-        Node { next: [u32::MAX; ALPHABET], fail: 0, out: Vec::new() }
+        Node {
+            next: [u32::MAX; ALPHABET],
+            fail: 0,
+            out: Vec::new(),
+        }
     }
 }
 
@@ -136,7 +140,10 @@ impl AhoCorasick {
                 for &id in &self.nodes[s].out {
                     let len = self.pattern_len[id as usize] as u64;
                     let end = base + i as u64 + 1;
-                    on_match(Match { start: end - len, pattern_id: id });
+                    on_match(Match {
+                        start: end - len,
+                        pattern_id: id,
+                    });
                 }
             }
         }
@@ -162,26 +169,186 @@ pub struct Signature {
 
 pub fn default_signatures() -> Vec<Signature> {
     vec![
-        Signature { name: "JPEG image", ext: "jpg", header: &[0xFF, 0xD8, 0xFF], footer: Some(&[0xFF, 0xD9]), footer_tail: 0, max_size: 32 << 20, header_offset: 0 },
-        Signature { name: "PNG image", ext: "png", header: &[0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A], footer: Some(b"IEND"), footer_tail: 4, max_size: 64 << 20, header_offset: 0 },
-        Signature { name: "GIF image", ext: "gif", header: b"GIF89a", footer: Some(&[0x00, 0x3B]), footer_tail: 0, max_size: 16 << 20, header_offset: 0 },
-        Signature { name: "PDF document", ext: "pdf", header: b"%PDF-", footer: Some(b"%%EOF"), footer_tail: 0, max_size: 128 << 20, header_offset: 0 },
-        Signature { name: "ZIP / OOXML", ext: "zip", header: &[0x50, 0x4B, 0x03, 0x04], footer: Some(&[0x50, 0x4B, 0x05, 0x06]), footer_tail: 22, max_size: 512 << 20, header_offset: 0 },
-        Signature { name: "GZIP stream", ext: "gz", header: &[0x1F, 0x8B, 0x08], footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
-        Signature { name: "SQLite database", ext: "sqlite", header: b"SQLite format 3\x00", footer: None, footer_tail: 0, max_size: 512 << 20, header_offset: 0 },
-        Signature { name: "ELF executable", ext: "elf", header: &[0x7F, b'E', b'L', b'F'], footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
-        Signature { name: "PE executable", ext: "exe", header: &[b'M', b'Z'], footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
-        Signature { name: "RIFF container", ext: "riff", header: b"RIFF", footer: None, footer_tail: 0, max_size: 512 << 20, header_offset: 0 },
-        Signature { name: "OLE compound file", ext: "doc", header: &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1], footer: None, footer_tail: 0, max_size: 128 << 20, header_offset: 0 },
-        Signature { name: "RAR archive", ext: "rar", header: b"Rar!\x1A\x07", footer: None, footer_tail: 0, max_size: 512 << 20, header_offset: 0 },
-        Signature { name: "7-Zip archive", ext: "7z", header: &[0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C], footer: None, footer_tail: 0, max_size: 512 << 20, header_offset: 0 },
-        Signature { name: "BZIP2 stream", ext: "bz2", header: b"BZh", footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
-        Signature { name: "PGP / GPG data", ext: "pgp", header: &[0x85, 0x02], footer: None, footer_tail: 0, max_size: 16 << 20, header_offset: 0 },
-        Signature { name: "OpenSSH private key", ext: "key", header: b"-----BEGIN OPENSSH PRIVATE KEY", footer: None, footer_tail: 0, max_size: 64 << 10, header_offset: 0 },
-        Signature { name: "RSA private key", ext: "pem", header: b"-----BEGIN RSA PRIVATE KEY", footer: None, footer_tail: 0, max_size: 64 << 10, header_offset: 0 },
-        Signature { name: "X.509 certificate", ext: "crt", header: b"-----BEGIN CERTIFICATE", footer: None, footer_tail: 0, max_size: 64 << 10, header_offset: 0 },
-        Signature { name: "Windows registry hive", ext: "hive", header: b"regf", footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
-        Signature { name: "Windows event log", ext: "evtx", header: b"ElfFile\x00", footer: None, footer_tail: 0, max_size: 256 << 20, header_offset: 0 },
+        Signature {
+            name: "JPEG image",
+            ext: "jpg",
+            header: &[0xFF, 0xD8, 0xFF],
+            footer: Some(&[0xFF, 0xD9]),
+            footer_tail: 0,
+            max_size: 32 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "PNG image",
+            ext: "png",
+            header: &[0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A],
+            footer: Some(b"IEND"),
+            footer_tail: 4,
+            max_size: 64 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "GIF image",
+            ext: "gif",
+            header: b"GIF89a",
+            footer: Some(&[0x00, 0x3B]),
+            footer_tail: 0,
+            max_size: 16 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "PDF document",
+            ext: "pdf",
+            header: b"%PDF-",
+            footer: Some(b"%%EOF"),
+            footer_tail: 0,
+            max_size: 128 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "ZIP / OOXML",
+            ext: "zip",
+            header: &[0x50, 0x4B, 0x03, 0x04],
+            footer: Some(&[0x50, 0x4B, 0x05, 0x06]),
+            footer_tail: 22,
+            max_size: 512 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "GZIP stream",
+            ext: "gz",
+            header: &[0x1F, 0x8B, 0x08],
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "SQLite database",
+            ext: "sqlite",
+            header: b"SQLite format 3\x00",
+            footer: None,
+            footer_tail: 0,
+            max_size: 512 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "ELF executable",
+            ext: "elf",
+            header: &[0x7F, b'E', b'L', b'F'],
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "PE executable",
+            ext: "exe",
+            header: b"MZ",
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "RIFF container",
+            ext: "riff",
+            header: b"RIFF",
+            footer: None,
+            footer_tail: 0,
+            max_size: 512 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "OLE compound file",
+            ext: "doc",
+            header: &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1],
+            footer: None,
+            footer_tail: 0,
+            max_size: 128 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "RAR archive",
+            ext: "rar",
+            header: b"Rar!\x1A\x07",
+            footer: None,
+            footer_tail: 0,
+            max_size: 512 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "7-Zip archive",
+            ext: "7z",
+            header: &[0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C],
+            footer: None,
+            footer_tail: 0,
+            max_size: 512 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "BZIP2 stream",
+            ext: "bz2",
+            header: b"BZh",
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "PGP / GPG data",
+            ext: "pgp",
+            header: &[0x85, 0x02],
+            footer: None,
+            footer_tail: 0,
+            max_size: 16 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "OpenSSH private key",
+            ext: "key",
+            header: b"-----BEGIN OPENSSH PRIVATE KEY",
+            footer: None,
+            footer_tail: 0,
+            max_size: 64 << 10,
+            header_offset: 0,
+        },
+        Signature {
+            name: "RSA private key",
+            ext: "pem",
+            header: b"-----BEGIN RSA PRIVATE KEY",
+            footer: None,
+            footer_tail: 0,
+            max_size: 64 << 10,
+            header_offset: 0,
+        },
+        Signature {
+            name: "X.509 certificate",
+            ext: "crt",
+            header: b"-----BEGIN CERTIFICATE",
+            footer: None,
+            footer_tail: 0,
+            max_size: 64 << 10,
+            header_offset: 0,
+        },
+        Signature {
+            name: "Windows registry hive",
+            ext: "hive",
+            header: b"regf",
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
+        Signature {
+            name: "Windows event log",
+            ext: "evtx",
+            header: b"ElfFile\x00",
+            footer: None,
+            footer_tail: 0,
+            max_size: 256 << 20,
+            header_offset: 0,
+        },
     ]
 }
 
@@ -217,7 +384,11 @@ impl Carver {
             }
         }
         let automaton = AhoCorasick::build(&patterns);
-        Carver { signatures, automaton, roles }
+        Carver {
+            signatures,
+            automaton,
+            roles,
+        }
     }
 
     pub fn pattern_count(&self) -> usize {
@@ -483,11 +654,18 @@ mod tests {
 
     #[test]
     fn automaton_finds_overlapping_patterns_in_one_pass() {
-        let pats: Vec<Vec<u8>> = vec![b"he".to_vec(), b"she".to_vec(), b"his".to_vec(), b"hers".to_vec()];
+        let pats: Vec<Vec<u8>> = vec![
+            b"he".to_vec(),
+            b"she".to_vec(),
+            b"his".to_vec(),
+            b"hers".to_vec(),
+        ];
         let ac = AhoCorasick::build(&pats);
         let mut hits = Vec::new();
         let mut st = 0;
-        ac.scan_chunk(b"ushers", 0, &mut st, |m| hits.push((m.start, m.pattern_id)));
+        ac.scan_chunk(b"ushers", 0, &mut st, |m| {
+            hits.push((m.start, m.pattern_id))
+        });
         // "she" at 1, "he" at 2, "hers" at 2
         assert!(hits.contains(&(1, 1)), "{hits:?}");
         assert!(hits.contains(&(2, 0)), "{hits:?}");
