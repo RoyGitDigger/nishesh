@@ -1,0 +1,24 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
+      - name: build
+        run: cargo build --release --verbose
+      - name: test
+        run: cargo test --verbose
+      - name: clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: format
+        run: cargo fmt --check
+      - name: end-to-end pipeline
+        run: ./demo/demo.sh --fast
+      - name: dependency audit
+        run: |
+          # The core carries no third-party crates. If this ever grows a
+          # dependency the build should fail loudly and on purpose.
+          test "$(cargo tree --depth 1 | wc -l)" -le 2
